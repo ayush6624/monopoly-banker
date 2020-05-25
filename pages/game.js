@@ -1,61 +1,58 @@
-import Head from 'next/head';
-import { Radio, Card, Select, Text, Input, Button, Spacer } from '@zeit-ui/react';
+import { Grid, Card, Col, Button, Input, Text, Row } from '@zeit-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
-import { useRouter } from 'next/router';
 
-export default function Home() {
-  const router = useRouter();
+export default function Game(props) {
   const [name, setName] = useState('');
+  const [gameData, setGameData] = useState('');
   useEffect(() => {
-    console.log(name);
-  }, [name]);
+    socket.emit('getPlayers');
+  }, []);
 
+  if (typeof window !== 'undefined') {
+    socket.on('system', (d) => {
+      console.log(d.players);
+      setGameData(d.players);
+    });
+    socket.on('connect', () => {
+      console.log('connected ', socket.id);
+    });
+    socket.on('disconnect', () => {
+      console.log('disconnected');
+    });
+    // socket.on('update', (d) => console.log(d));
+    // socket.on('balance', setGameData);
+  }
+  if (!gameData) return 'Loading';
   return (
-    <div className="container">
-      <Head>
-        <title>Monopoly Digital</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main>
-        <h1 className="title">
-          <a>Digital Monopoly</a>
-        </h1>
-
-        <p className="description">
-          2 Player Match<code>game_id</code>
-        </p>
-
-        <Card hoverable shadow width="300px">
-          <h4 align="center"> Enter Your Name </h4>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              console.log(name);
-              if (name !== '') socket.emit('register', name);
-              // socket.close();
-              setTimeout(() => {
-                router.push('/game');
-              }, 500);
-              // router.push('/game');
-            }}
-          >
-            <Input onChange={(e) => setName(e.target.value)}></Input>
-            <Spacer y={0.5}></Spacer>
-            <Button type="success" htmlType="submit">
-              Proceed
-            </Button>
-          </form>
-        </Card>
-      </main>
-
-      <footer>
-        <a href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app" target="_blank" rel="noopener noreferrer">
-          Powered by <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
-        </a>
-      </footer>
-
+    <>
+      <div className="container">
+        <main>
+          {/* <Row> */}
+          <Grid.Container gap={2} justify="center" alignItems="center">
+            {gameData.map((value, index) => {
+              return (
+                <Grid key={index} xs={12}>
+                  <Card hoverable shadow style={{ width: '100%', height: '100%' }}>
+                    <h1 align="center">{value.username}</h1>
+                    <Text align="center">Balance: {value.balance}</Text>
+                  </Card>
+                </Grid>
+              );
+            })}
+            <Grid xs={24}>
+              <Button
+                onClick={() => {
+                  props.changeTheme();
+                }}
+              >
+                Change Theme!
+              </Button>
+            </Grid>
+          </Grid.Container>
+          {/* </Row> */}
+        </main>
+      </div>
       <style jsx>{`
         .container {
           min-height: 100vh;
@@ -185,7 +182,6 @@ export default function Home() {
           }
         }
       `}</style>
-
       <style jsx global>{`
         html,
         body {
@@ -198,6 +194,6 @@ export default function Home() {
           box-sizing: border-box;
         }
       `}</style>
-    </div>
+    </>
   );
 }

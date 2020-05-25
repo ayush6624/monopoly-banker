@@ -8,8 +8,16 @@
     "start": "next start"
   },
   "dependencies": {
+    "@zeit-ui/react": "^1.6.0-canary.2",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.15",
     "next": "9.4.2",
+    "nodemon": "^2.0.4",
     "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react-dom": "16.13.1",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0",
+    "swr": "^0.2.2"
   }
 }
