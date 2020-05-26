@@ -2,14 +2,55 @@ import Head from 'next/head';
 import { Radio, Card, Select, Text, Input, Button, Spacer } from '@zeit-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
+import Router from 'next/router';
 
 export default function Home() {
-  const router = useRouter();
+  // const router = useRouter();
   const [name, setName] = useState('');
+  const [notification, setNotification] = useState('');
+  const [oldGame, setOldGame] = useState('');
+
+  // First useEffect
   useEffect(() => {
-    console.log(name);
-  }, [name]);
+    if (typeof window !== 'undefined') {
+      let prevGame = window.localStorage.getItem('username');
+      if (prevGame) {
+        console.log('prev game ->  ', prevGame);
+        setOldGame(prevGame);
+      }
+    }
+  }, []);
+
+  // Second useEffect
+  useEffect(() => {
+    console.log('socket listner accounces 1st useeffect');
+    socket.on('notification', (n) => {
+      console.log('index notifications -> ', n);
+      setNotification(n);
+    });
+    return () => {
+      console.log('turn off notification index');
+      socket.off('notification');
+    };
+  }, []);
+
+  // Third useEffect -> notification
+  useEffect(() => {
+    console.log('notification parsing and pushing useeffect');
+    if (notification) console.log(notification);
+    if (notification.message?.includes('has joined the game')) {
+      window.localStorage.setItem('username', name);
+      console.log('begin pushing');
+      setTimeout(() => {
+        Router.push('/game');
+        // console.log('MOCK ROUTING TO /PAGE');
+      }, 500);
+    }
+    return () => {
+      console.log('notification and pushing unmount');
+    };
+  }, [notification]);
 
   return (
     <div className="container">
@@ -23,22 +64,16 @@ export default function Home() {
           <a>Digital Monopoly</a>
         </h1>
 
-        <p className="description">
-          2 Player Match<code>game_id</code>
-        </p>
+        <p className="description">Easy Financial Management</p>
 
         <Card hoverable shadow width="300px">
           <h4 align="center"> Enter Your Name </h4>
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              console.log(name);
-              if (name !== '') socket.emit('register', name);
-              // socket.close();
-              setTimeout(() => {
-                router.push('/game');
-              }, 500);
-              // router.push('/game');
+              if (name !== '') {
+                socket.emit('register', name);
+              }
             }}
           >
             <Input onChange={(e) => setName(e.target.value)}></Input>
@@ -47,6 +82,30 @@ export default function Home() {
               Proceed
             </Button>
           </form>
+
+          {notification ? (
+            <Text align="center" type={notification.type}>
+              {notification.message}
+            </Text>
+          ) : (
+            ''
+          )}
+          {oldGame ? (
+            <>
+              <Spacer y={0.5}></Spacer>
+              <Button
+                type="secondary"
+                onClick={() => {
+                  console.log('clicked on prev game');
+                  Router.push('/game');
+                }}
+              >
+                Join Previous Game!
+              </Button>
+            </>
+          ) : (
+            ''
+          )}
         </Card>
       </main>
 

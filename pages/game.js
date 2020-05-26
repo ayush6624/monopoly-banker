@@ -1,53 +1,185 @@
-import { Grid, Card, Col, Button, Input, Text, Row } from '@zeit-ui/react';
+import { Grid, Card, Spacer, Button, Input, Text, Modal, useToasts } from '@zeit-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
+import { useRouter } from 'next/router';
+import { Compass, Send, DollarSign, Moon, LogOut } from '@zeit-ui/react-icons';
 
 export default function Game(props) {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [gameData, setGameData] = useState('');
+  const [moneyReceiver, setmoneyReceiver] = useState({ value: 0, id: null });
+
+  const [state, setState] = useState(false);
+  const handler = () => setState(!state);
+  const closeHandler = (event) => {
+    setState(false);
+    console.log('closed');
+  };
+
+  const [toasts, setToast] = useToasts();
+
+  const payMoney = (user) => {
+    console.log('clicked ', user.username);
+    setmoneyReceiver({ ...moneyReceiver, id: user.id });
+    handler();
+  };
+  // First useEffect -> ComponentDidMount
   useEffect(() => {
-    socket.emit('getPlayers');
+    console.log('first use effect');
+    console.log('localstorage -> ', window.localStorage.getItem('username'));
+    socket.emit('getPlayers', window.localStorage.getItem('username'));
+    return () => {
+      console.log('closing game.js first useEffect');
+    };
+  }, []);
+
+  // Second useEffect
+  useEffect(() => {
+    console.log('second use effect');
+    socket.on('notification', (n) => {
+      let theme_type = n.type === 'error' ? 'error' : 'success';
+      setToast({ text: n.message, type: theme_type, delay: 3000 });
+      console.log(n);
+    });
+    return () => {
+      console.log('closing game.js second useEffect');
+      socket.off('notification');
+    };
   }, []);
 
   if (typeof window !== 'undefined') {
-    socket.on('system', (d) => {
-      console.log(d.players);
-      setGameData(d.players);
-    });
     socket.on('connect', () => {
-      console.log('connected ', socket.id);
+      console.log('connection id -> ', socket.id);
     });
     socket.on('disconnect', () => {
-      console.log('disconnected');
+      console.log('disconnected from server');
     });
-    // socket.on('update', (d) => console.log(d));
-    // socket.on('balance', setGameData);
+    socket.on('update', (d) => {
+      // console.log('update ', d);
+      setGameData([...d]);
+    });
   }
   if (!gameData) return 'Loading';
+
   return (
     <>
       <div className="container">
         <main>
           {/* <Row> */}
-          <Grid.Container gap={2} justify="center" alignItems="center">
+          <Grid.Container gap={2} justify="center">
             {gameData.map((value, index) => {
+              let me = false;
+              if (value.id === socket.id) me = true;
               return (
                 <Grid key={index} xs={12}>
-                  <Card hoverable shadow style={{ width: '100%', height: '100%' }}>
+                  <Card
+                    hoverable
+                    shadow
+                    type={me ? 'success' : 'default'}
+                    // style={{ width: '100%', height: '100%' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      payMoney(value);
+                    }}
+                  >
                     <h1 align="center">{value.username}</h1>
                     <Text align="center">Balance: {value.balance}</Text>
                   </Card>
                 </Grid>
               );
             })}
-            <Grid xs={24}>
+            <Grid xs={12}>
               <Button
+                icon={<Moon />}
                 onClick={() => {
                   props.changeTheme();
                 }}
               >
                 Change Theme!
               </Button>
+              <Button
+                icon={<LogOut />}
+                type="error"
+                onClick={() => {
+                  // window.localStorage.clear('username');
+                  socket.emit('message', 'exit_notification');
+                  router.push('/');
+                }}
+              >
+                Exit!
+              </Button>
+              <Text>If you want to continue later, Simply close the game. It is automatically saved!</Text>
+            </Grid>
+          </Grid.Container>
+          <Modal open={state} onClose={closeHandler}>
+            <Modal.Title>Transaction</Modal.Title>
+            {/* <Modal.Subtitle>This is a modal</Modal.Subtitle> */}
+            <Modal.Content>
+              <Input
+                type="number"
+                clearable
+                placeholder="$10"
+                onChange={(e) => {
+                  let input = e.target.value;
+                  if (input >= 0) setmoneyReceiver({ ...moneyReceiver, value: parseInt(input) });
+                  else socket.emit('message', 'Player entered -ve value!');
+                }}
+              >
+                {' '}
+                Money{' '}
+              </Input>
+            </Modal.Content>
+            <Modal.Action passive onClick={() => setState(false)}>
+              Cancel
+            </Modal.Action>
+            <Modal.Action
+              onClick={() => {
+                console.log(moneyReceiver);
+                socket.emit('pay', { value: moneyReceiver.value, player: moneyReceiver.id });
+                handler();
+              }}
+            >
+              Submit
+            </Modal.Action>
+          </Modal>
+          <Spacer y={1} />
+          <Card hoverable shadow>
+            <Grid.Container gap={2} justify="center">
+              <Grid xs={24}>
+                <h4 align="center">Common Actions!</h4>
+              </Grid>
+              <Grid>
+                <Button
+                  icon={<Send />}
+                  type="success"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    payMoney({ id: 'bank' });
+                  }}
+                >
+                  Pay To Bank
+                </Button>
+              </Grid>
+              <Grid>
+                <Button icon={<Compass />} type="success">
+                  Pass Go
+                </Button>
+              </Grid>
+              <Grid>
+                <Button icon={<DollarSign />} type="success">
+                  From Bank
+                </Button>
+              </Grid>
+            </Grid.Container>
+          </Card>
+          <Spacer y={2} />
+          <Grid.Container gap={2} justify="center">
+            <Grid xs={12}>
+              <Card shadow style={{ width: '100%', height: '100px' }} />
+            </Grid>
+            <Grid xs={12}>
+              <Card shadow style={{ width: '100%', height: '100px' }} />
             </Grid>
           </Grid.Container>
           {/* </Row> */}
