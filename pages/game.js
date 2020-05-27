@@ -1,4 +1,4 @@
-import { Grid, Card, Spacer, Button, Input, Text, Modal, useToasts } from '@zeit-ui/react';
+import { Grid, Card, Spacer, Button, Input, Text, Modal, useToasts, Popover } from '@zeit-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
 import { useRouter } from 'next/router';
@@ -9,6 +9,7 @@ export default function Game(props) {
   const [name, setName] = useState('');
   const [gameData, setGameData] = useState('');
   const [moneyReceiver, setmoneyReceiver] = useState({ value: 0, id: null });
+  const [sendMoney, setSendMoney] = useState('');
 
   const [state, setState] = useState(false);
   const handler = () => setState(!state);
@@ -108,12 +109,12 @@ export default function Game(props) {
                 type="number"
                 clearable
                 placeholder="$10"
-                // onKeyDown={(e) => {
-                //   if (e.key === 'Enter') {
-                //     socket.emit('pay', { value: moneyReceiver.value, player: moneyReceiver.id });
-                //     handler();
-                //   }
-                // }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    socket.emit('pay', { value: moneyReceiver.value, player: moneyReceiver.id });
+                    handler();
+                  }
+                }}
                 onChange={(e) => {
                   let input = e.target.value;
                   if (input >= 0) setmoneyReceiver({ ...moneyReceiver, value: parseInt(input) });
@@ -162,14 +163,46 @@ export default function Game(props) {
                   type="success"
                   onClick={(e) => {
                     // e.preventDefault()
+                    socket.emit('pay', { player: 'go' });
                   }}
                 >
                   Pass Go
                 </Button>
               </Grid>
               <Grid>
-                <Button icon={<DollarSign />} type="success">
-                  From Bank
+                <Button
+                  icon={<DollarSign />}
+                  type="success"
+                  onClick={(e) => {
+                    console.log('receive money click');
+                  }}
+                >
+                  <Popover
+                    content={
+                      <>
+                        <Popover.Item title>
+                          <span>Enter Amount</span>
+                        </Popover.Item>
+                        <Popover.Item>
+                          <Input onChange={(e) => setSendMoney({ value: parseInt(e.target.value) })} size="small" width="100%" type="number" clearable placeholder="$10"></Input>
+                        </Popover.Item>
+                        <Popover.Item>
+                          <Button
+                            type="secondary"
+                            onClick={(e) => {
+                              console.log(sendMoney);
+                              socket.emit('receive', sendMoney);
+                              console.log('receive moeny');
+                            }}
+                          >
+                            Submit
+                          </Button>
+                        </Popover.Item>
+                      </>
+                    }
+                  >
+                    From Bank
+                  </Popover>
                 </Button>
               </Grid>
             </Grid.Container>

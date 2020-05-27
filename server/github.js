@@ -78,65 +78,37 @@ io.on('connection', (socket) => {
 
   socket.on('pay', (data) => {
     if (Number.isInteger(players.search('id', socket.id))) {
+      if (data.value === undefined) data.value = 50; // pass go situation
       if (Number.isInteger(data.value) && data.value < 10000) {
         players[players.search('id', socket.id)].balance -= parseInt(data.value);
-        if (data.player == 'fine') {
-          parking += parseInt(data.value);
+        if (data.player == 'go') {
+          players[players.search('id', socket.id)].balance += 2 * parseInt(data.value); // Since we deducted before
           io.sockets.emit('update', players);
-          io.sockets.emit('notification', { type: 'info', message: 'Fine Deducted' });
+          io.sockets.emit('notification', { type: 'info', message: players[players.search('id', socket.id)].username + ' Passed Go!' });
           console.log(timestamp() + chalk.yellow('TRANSFER: ') + chalk.gray(players[players.search('id', socket.id)].username + ' paid a £' + data.value + ' fine'));
         } else if (data.player === 'bank') {
           io.sockets.emit('update', players);
-          io.sockets.emit('notification', { type: 'info', message: 'Bank Transfer Successful' });
+          io.sockets.emit('notification', { type: 'info', message: players[players.search('id', socket.id)].username + ' Sent ₹' + data.value + ' to Bank' });
           console.log(timestamp() + chalk.yellow('TRANSFER: ') + chalk.gray(players[players.search('id', socket.id)].username + ' paid £' + data.value + ' to the bank'));
         } else if (Number.isInteger(players.search('id', data.player))) {
           players[players.search('id', data.player)].balance += parseInt(data.value);
           io.sockets.emit('update', players);
-          io.sockets.emit('notification', { type: 'info', message: 'Money Transfer' });
-          console.log(timestamp() + chalk.yellow('TRANSFER: ') + chalk.gray(players[players.search('id', socket.id)].username + ' paid £' + data.value + ' to ' + players[players.search('id', data.player)].username));
+          io.sockets.emit('notification', { type: 'info', message: players[players.search('id', socket.id)].username + ' Sent ₹' + data.value + ' to ' + players[players.search('id', data.player)].username });
+          console.log(timestamp() + chalk.yellow('TRANSFER: ') + chalk.gray(players[players.search('id', socket.id)].username + ' paid ₹' + data.value + ' to ' + players[players.search('id', data.player)].username));
         }
       }
     }
   });
 
+  //bank
   socket.on('receive', (data) => {
     if (Number.isInteger(players.search('id', socket.id))) {
       if (Number.isInteger(data.value) && data.value < 10000) {
         players[players.search('id', socket.id)].balance += parseInt(data.value);
-
-        socket.emit('balance', {
-          balance: players[players.search('id', socket.id)].balance,
-          message: '<i class="fa fa-plus"></i>' + data.value + ' from the bank',
-        });
-
+        io.sockets.emit('update', players);
+        io.sockets.emit('notification', { type: 'info', message: players[players.search('id', socket.id)].username + ' Received ₹' + data.value + ' From Bank' });
         console.log(timestamp() + chalk.red('ADD: ') + chalk.gray(players[players.search('id', socket.id)].username + ' received £' + data.value));
       }
     }
   });
-
-  // socket.on('message', (command) => {
-  //   if (Number.isInteger(players.search('id', socket.id))) {
-  //     if (command == 'go') {
-  //       players[players.search('id', socket.id)].balance += 200;
-
-  //       socket.emit('balance', {
-  //         balance: players[players.search('id', socket.id)].balance,
-  //         message: '<i class="fa fa-plus"></i>200 for passing Go',
-  //       });
-
-  //       console.log(timestamp() + chalk.green('GO: ') + chalk.gray(players[players.search('id', socket.id)].username + ' passed Go'));
-  //     } else if (command == 'parking') {
-  //       players[players.search('id', socket.id)].balance += parking;
-
-  //       socket.emit('balance', {
-  //         balance: players[players.search('id', socket.id)].balance,
-  //         message: '<i class="fa fa-plus"></i>' + parking + ' from Free Parking',
-  //       });
-
-  //       console.log(timestamp() + chalk.blue('FREE PARKING: ') + chalk.gray(players[players.search('id', socket.id)].username + ' collected Free Parking'));
-  //     } else if (command === 'exit_notification') {
-  //       io.sockets.emit('notification', { type: 'error', message: players[players.search('id', socket.id)].username + ' has left the game' });
-  //     }
-  //   }
-  // });
 });
