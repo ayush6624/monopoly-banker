@@ -37,11 +37,9 @@ export default function Home() {
 
   // Third useEffect -> notification
   useEffect(() => {
-    console.log('notification parsing and pushing useeffect');
     if (notification) console.log(notification);
     if (notification.message?.includes('has joined the game')) {
       window.localStorage.setItem('username', name);
-      console.log('begin pushing');
       setTimeout(() => {
         Router.push('/game');
         // console.log('MOCK ROUTING TO /PAGE');

@@ -14,19 +14,16 @@ export default function Game(props) {
   const handler = () => setState(!state);
   const closeHandler = (event) => {
     setState(false);
-    console.log('closed');
   };
 
   const [toasts, setToast] = useToasts();
 
   const payMoney = (user) => {
-    console.log('clicked ', user.username);
     setmoneyReceiver({ ...moneyReceiver, id: user.id });
     handler();
   };
   // First useEffect -> ComponentDidMount
   useEffect(() => {
-    console.log('first use effect');
     console.log('localstorage -> ', window.localStorage.getItem('username'));
     socket.emit('getPlayers', window.localStorage.getItem('username'));
     return () => {
@@ -36,7 +33,6 @@ export default function Game(props) {
 
   // Second useEffect
   useEffect(() => {
-    console.log('second use effect');
     socket.on('notification', (n) => {
       let theme_type = n.type === 'error' ? 'error' : 'success';
       setToast({ text: n.message, type: theme_type, delay: 3000 });
@@ -47,21 +43,13 @@ export default function Game(props) {
       socket.off('notification');
     };
   }, []);
-
-  if (typeof window !== 'undefined') {
-    socket.on('connect', () => {
-      console.log('connection id -> ', socket.id);
-    });
-    socket.on('disconnect', () => {
-      console.log('disconnected from server');
-    });
+  useEffect(() => {
     socket.on('update', (d) => {
-      // console.log('update ', d);
       setGameData([...d]);
     });
-  }
-  if (!gameData) return 'Loading';
+  }, []);
 
+  if (!gameData) return 'Loading';
   return (
     <>
       <div className="container">
@@ -120,6 +108,12 @@ export default function Game(props) {
                 type="number"
                 clearable
                 placeholder="$10"
+                // onKeyDown={(e) => {
+                //   if (e.key === 'Enter') {
+                //     socket.emit('pay', { value: moneyReceiver.value, player: moneyReceiver.id });
+                //     handler();
+                //   }
+                // }}
                 onChange={(e) => {
                   let input = e.target.value;
                   if (input >= 0) setmoneyReceiver({ ...moneyReceiver, value: parseInt(input) });
@@ -151,10 +145,11 @@ export default function Game(props) {
               </Grid>
               <Grid>
                 <Button
+                  htmlType="submit"
                   icon={<Send />}
                   type="success"
                   onClick={(e) => {
-                    e.preventDefault();
+                    // e.preventDefault();
                     payMoney({ id: 'bank' });
                   }}
                 >
@@ -162,7 +157,13 @@ export default function Game(props) {
                 </Button>
               </Grid>
               <Grid>
-                <Button icon={<Compass />} type="success">
+                <Button
+                  icon={<Compass />}
+                  type="success"
+                  onClick={(e) => {
+                    // e.preventDefault()
+                  }}
+                >
                   Pass Go
                 </Button>
               </Grid>
