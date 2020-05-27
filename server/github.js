@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
   socket.on('pay', (data) => {
     if (Number.isInteger(players.search('id', socket.id))) {
       if (data.value === undefined) data.value = 50; // pass go situation
-      if (Number.isInteger(data.value) && data.value < 10000) {
+      if (Number.isInteger(data.value) && data.value < 100000) {
         players[players.search('id', socket.id)].balance -= parseInt(data.value);
         if (data.player == 'go') {
           players[players.search('id', socket.id)].balance += 2 * parseInt(data.value); // Since we deducted before
@@ -103,7 +103,7 @@ io.on('connection', (socket) => {
   //bank
   socket.on('receive', (data) => {
     if (Number.isInteger(players.search('id', socket.id))) {
-      if (Number.isInteger(data.value) && data.value < 10000) {
+      if (Number.isInteger(data.value) && data.value < 100000) {
         players[players.search('id', socket.id)].balance += parseInt(data.value);
         io.sockets.emit('update', players);
         io.sockets.emit('notification', { type: 'info', message: players[players.search('id', socket.id)].username + ' Received ₹' + data.value + ' From Bank' });

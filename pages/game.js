@@ -108,10 +108,11 @@ export default function Game(props) {
               <Input
                 type="number"
                 clearable
-                placeholder="$10"
+                placeholder="Amount"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     socket.emit('pay', { value: moneyReceiver.value, player: moneyReceiver.id });
+                    setmoneyReceiver({ value: 0, id: null });
                     handler();
                   }
                 }}
@@ -184,7 +185,7 @@ export default function Game(props) {
                           <span>Enter Amount</span>
                         </Popover.Item>
                         <Popover.Item>
-                          <Input onChange={(e) => setSendMoney({ value: parseInt(e.target.value) })} size="small" width="100%" type="number" clearable placeholder="$10"></Input>
+                          <Input onChange={(e) => setSendMoney({ value: parseInt(e.target.value) })} size="small" width="100%" type="number" clearable placeholder="Amount"></Input>
                         </Popover.Item>
                         <Popover.Item>
                           <Button
