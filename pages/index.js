@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { Radio, Card, Select, Text, Input, Button, Spacer } from '@zeit-ui/react';
+import { Radio, Card, Select, Text, Input, Button, Spacer } from '@geist-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
 // import { useRouter } from 'next/router';

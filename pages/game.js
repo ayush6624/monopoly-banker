@@ -1,8 +1,8 @@
-import { Grid, Card, Spacer, Button, Input, Text, Modal, useToasts, Popover } from '@zeit-ui/react';
+import { Grid, Card, Spacer, Button, Input, Text, Modal, useToasts, Popover } from '@geist-ui/react';
 import { useEffect, useState, useCallback } from 'react';
 import socket from '../lib/socket';
 import { useRouter } from 'next/router';
-import { Compass, Send, DollarSign, Moon, LogOut } from '@zeit-ui/react-icons';
+import { Compass, Send, DollarSign, Moon, LogOut } from '@geist-ui/react-icons';
 
 export default function Game(props) {
   const router = useRouter();

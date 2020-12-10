@@ -13,13 +13,22 @@ Number.prototype.pad = function () {
 
 const chalk = require('chalk'),
   express = require('express'),
+  cors = require('cors')
   app = express(),
-  server = require('http').Server(app),
-  io = require('socket.io')(server);
+  server = require('http').Server(app)
+
 const timestamp = () => {
   const date = new Date();
   return date.getHours().pad() + ':' + date.getMinutes().pad() + ':' + date.getSeconds().pad() + ' ';
 };
+
+const io = require('socket.io')(server, {
+  cors: {
+    origin: '*',
+  }
+});
+
+console.log('Starting!');
 
 const players = [];
 let parking = 50;
@@ -27,6 +36,8 @@ let parking = 50;
 server.listen(4000);
 
 app.set('view engine', 'jade');
+app.use(cors())
+app.options('*', cors());
 
 io.on('connection', (socket) => {
   socket.on('getPlayers', (username) => {

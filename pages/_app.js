@@ -1,4 +1,4 @@
-import { ZeitProvider, CssBaseline } from '@zeit-ui/react';
+import { GeistProvider, CssBaseline } from '@geist-ui/react';
 import { useState } from 'react';
 
 function MyApp({ Component, pageProps }) {
@@ -7,10 +7,10 @@ function MyApp({ Component, pageProps }) {
     setThemeType((lastThemeType) => (lastThemeType === 'dark' ? 'light' : 'dark'));
   };
   return (
-    <ZeitProvider theme={{ type: themeType }}>
+    <GeistProvider theme={{ type: themeType }}>
       <CssBaseline />
       <Component {...pageProps} changeTheme={switchThemes} />
-    </ZeitProvider>
+    </GeistProvider>
   );
 }
 export default MyApp;
